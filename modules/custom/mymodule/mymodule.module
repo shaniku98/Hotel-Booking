@@ -1,0 +1,26 @@
+<?php
+use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Drupal\Core\Url;
+
+/**
+* Implemention of hook_form_alter
+*/
+function mymodule_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id){
+
+	if($form_id == 'node_check_room_availability_form'){
+		$form['actions']['submit']['#value'] = t('Check Availability');
+		$form['actions']['submit']['#submit'][] = '_MODULE_goto';
+		//$form_state->setRedirect('about-us');
+	}
+}
+
+function _MODULE_goto($form, FormStateInterface $form_state) {
+	// set relative internal path
+	$redirect_path = "/book-room";
+	$url = url::fromUserInput($redirect_path);
+
+	// set redirect
+	$form_state->setRedirectUrl($url);
+  	// $form_state->setPath('/book-room');
+}

@@ -1,0 +1,152 @@
+<?php
+use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Drupal\Core\Url;
+use Drupal\user\Entity\User;
+use Drupal\views\ViewExecutable;
+use Drupal\views\Views;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\Core\Database\Query\ConditionInterface;
+use Drupal\Core\Database\Query\Condition;
+
+
+/**
+* Implemention of hook_form_alter
+*/
+// function custom_form_redirect_form_alter(&$form, FormStateInterface $form_state, $form_id){
+
+// 	if($form_id == 'node_check_room_availability_form'){
+// 		$form['actions']['submit']['#value'] = t('Check Availability');
+// 		$form['actions']['submit']['#submit'][] = '_MODULE_goto';
+// 	}
+// }
+// function _MODULE_goto($form, FormStateInterface $form_state) {
+// 	// set relative internal path
+// 	$redirect_path = "/book-room";
+// 	$url = url::fromUserInput($redirect_path);
+
+// 	// set redirect
+// 	$form_state->setRedirectUrl($url);
+// }
+
+function custom_form_redirect_form_alter(&$form, FormStateInterface $form_state, $form_id)
+{
+	if($form_id == 'node_book_room_form_form')
+	{
+		$user = User::load(\Drupal::currentUser()->id());
+		$id = $_GET['rn'];
+		$cat= $_GET['tp'];
+		$bed= $_GET['bt'];
+		$email = $user->get('mail')->value;
+		$phone = $user->get('field_contact_number')->value;
+		
+		$form['title']['widget'][0]['value']['#default_value'] = $user->getUsername();
+		$form['title']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+
+		$form['field_email']['widget'][0]['value']['#default_value'] = $email;
+		$form['field_email']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+
+		$form['field_room_no']['widget'][0]['value']['#default_value'] = $id;
+		$form['field_room_no']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+
+		$form['field_room_type']['widget'][0]['value']['#default_value'] = $cat;
+		$form['field_room_type']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+
+		$form['field_bed_type1']['widget'][0]['value']['#default_value'] = $bed;
+		$form['field_bed_type1']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+
+		// $form['field_room_image']['value']['#default_value'] = $img;
+		// $form['field_room_image']['value']['#attributes']['readonly'] = 'readonly';
+
+		$form['actions']['submit']['#value'] = t('Book Room');
+		$form['actions']['submit']['#submit'][] = '_custom_form_redirect_goto';
+	}
+}
+
+function _custom_form_redirect_goto($form, FormStateInterface $form_state)
+{
+	drupal_set_message('room booked ');
+}
+
+/*
+* Implementes hook_views_query_alter().
+*/
+function custom_form_redirect_views_query_alter(ViewExecutable $view, QueryPluginBase $query)
+{
+	if($view->id() == 'ac_room' && $view->getDisplay()->display['id'] == 'page_1')
+	{
+		// dsm($query->where);
+		$name = $_GET['name'];
+		dsm($name);
+		$start_date = $_GET['arivedate'];
+		$end_date = $_GET['departuredate'];
+
+        $database = \Drupal::database();
+		$query_result = $database->select('node__field_date', 'd');
+		$query_result->fields('d', ['entity_id'])
+    		->join('node__field_r', 'r', 'd.entity_id = r.entity_id');
+		$query_result->fields('r', ['field_r_target_id']);
+		// $query_result->condition('d.field_date_value', $start_date,'>=');
+		// $query_result->condition('d.field_date_end_value', $end_date,'<=');
+
+		$andGroup1 = $query_result->andConditionGroup()
+  			->condition('d.field_date_value', $start_date,'<=')
+  			->condition('d.field_date_end_value', $end_date,'>=');
+  		$orGroup = $query_result->orConditionGroup()
+  			->condition($andGroup1)
+  			->condition('d.field_date_end_value', array($start_date, $end_date), 'BETWEEN')
+  			->condition('d.field_date_value', array($start_date, $end_date), 'BETWEEN');
+		$query_result->condition($orGroup);
+
+		$results = $query_result->execute();
+		$acrooms = [];
+		foreach ($results as $record)
+		{
+			$acrooms[$record->field_r_target_id] = $record->field_r_target_id;
+  			dsm($record->field_r_target_id);
+		}
+		dsm($acrooms);
+		if($acrooms!=null)
+		{
+			$query->addWhere('node_field_data', 'node_field_data.nid', $acrooms, 'NOT IN');
+		}
+	}
+
+	/*
+	*views alter for non ac room 
+	*/
+
+	if($view->id() == 'non_ac_room' && $view->getDisplay()->display['id'] == 'block_2')
+	{
+		// dsm($query->where);
+		$name = $_GET['name'];
+		dsm($name);
+		$start_date = $_GET['arivedate'];
+		$end_date = $_GET['departuredate'];
+
+		$database = \Drupal::database();
+		$query_result = $database->select('node__field_date', 'd');
+		$query_result->fields('d', ['entity_id'])
+    		->join('node__field_r', 'r', 'd.entity_id = r.entity_id');
+		$query_result->fields('r', ['field_r_target_id']);
+		$query_result->condition('d.field_date_value', $start_date,'>=');
+		$query_result->condition('d.field_date_end_value', $end_date,'<=');
+ 
+		$results = $query_result->execute();
+		$nonacroom = [];
+		foreach ($results as $record)
+		{
+			$nonacroom[$record->field_r_target_id] = $record->field_r_target_id;
+  			dsm($record->field_r_target_id);
+		}
+		dsm($nonacroom);
+		if($nonacroom!=null)
+		{
+			$query->addWhere('node_field_data', 'node_field_data.nid', $nonacroom, 'NOT IN');
+		}
+	}
+}
+
+
+
+

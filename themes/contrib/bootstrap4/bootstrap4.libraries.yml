@@ -1,0 +1,25 @@
+bootstrap4-css-4-3-1:
+  version: 4.3.1
+  css:
+    theme:
+      dist/bootstrap/4.3.1/dist/css/bootstrap.min.css: { minified: true }
+
+bootstrap4-js-4-3-1:
+  version: 4.3.1
+  js:
+    dist/bootstrap/4.3.1/dist/js/bootstrap.min.js: { minified: true }
+  dependencies:
+    - core/jquery
+
+global-styling:
+  css:
+    theme:
+      css/style.css: {}
+
+sass:
+  version: 1.0.0
+  css:
+    theme:
+      css/bootstrap4.sass.css: {}
+  dependencies:
+    - bootstrap4/bootstrap4-css-4-3-1

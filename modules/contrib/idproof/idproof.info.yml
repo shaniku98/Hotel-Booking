@@ -1,0 +1,11 @@
+name: Identity Proof Field Types
+type: module
+description: Identity Proof Field Types has a bunch of Identity Proof fields.
+# core: 8.x
+package: Field Type
+
+# Information added by Drupal.org packaging script on 2018-08-21
+version: '8.x-1.0-alpha1'
+core: '8.x'
+project: 'idproof'
+datestamp: 1534838285

@@ -1,0 +1,7 @@
+check_availability_form.check_availability:
+  path: '/node/add/check_room_availability'
+  defaults:
+    _form: '\Drupal\check_availability_form\Form\CheckAvailability'
+    _title: 'Check Room Availability'
+  requirements:
+    _permission: 'access content'

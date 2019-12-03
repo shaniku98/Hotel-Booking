@@ -1,0 +1,7 @@
+custom_form_redirect.custom_form:
+  path: '/node/add/check_room_availability'
+  defaults:
+    _form: '\Drupal\custom_form_redirect\Form\CustomForm'
+    _title: 'Check Room Availability'
+  requirements:
+    _permission: 'access content'
